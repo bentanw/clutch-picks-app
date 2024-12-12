@@ -1,8 +1,13 @@
 # sports-betting-nn
 
-## Set up backend
+## Set up frontend
+- ```cd client```
+- ```pnpm install```
+- ```pnpm run dev```
+- go to localhost:5173
 
-### Create virtual environment
+## Set up backend
+### Create virtual environment if not already done
 - Windows: ```virtualenv env```
 - Linux/MacOS: ```python -m venv env```
 

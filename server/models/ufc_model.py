@@ -199,6 +199,9 @@ class UFCEloEngine:
                 "winner": second_fighter,
                 "message": f"{second_fighter} is better than {first_fighter}.",
             }
+            
+    def get_fighters(self):
+        return list(self.elo_ratings.keys())
 
 
 # test
