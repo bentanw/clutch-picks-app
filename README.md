@@ -7,6 +7,10 @@
 - go to localhost:5173
 
 ## Set up backend
+
+### cd to backend
+- ```cd server```
+
 ### Create virtual environment if not already done
 - Windows: ```virtualenv env```
 - Linux/MacOS: ```python -m venv env```
