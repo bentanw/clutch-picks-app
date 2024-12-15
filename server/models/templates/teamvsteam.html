@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBA Team Prediction</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 320px;
+            min-height: 100vh;
+            background: linear-gradient(to bottom right, #111827, #1f2937);
+            color: rgba(255, 255, 255, 0.87);
+        }
+
+        .container {
+            background-color: #1f2937;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 600px;
+        }
+
+        h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #ffa726;
+        }
+
+        label {
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border-radius: 0.25rem;
+            border: none;
+            background-color: #2c2c2c;
+            color: #e0e0e0;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.6em 1.2em;
+            font-size: 1em;
+            font-weight: 500;
+            font-family: inherit;
+            border-radius: 0.5rem;
+            background-color: #ffa726;
+            color: #1a1a1a;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.25s ease;
+        }
+
+        button:hover {
+            background-color: #ff9800;
+        }
+
+        .result {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #ff5252;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>NBA Team Prediction</h1>
+        <form action="/predict" method="post">
+
+            <label for="team_a">Select Team A:</label>
+            <select name="team_a" id="team_a" required>
+                {% for team in teams %}
+                <option value="{{ team }}" {% if team == request.form.get('team_a') %}selected{% endif %}>{{ team }}</option>
+                {% endfor %}
+            </select>
+            
+            <label for="team_b">Select Team B:</label>
+            <select name="team_b" id="team_b" required>
+                {% for team in teams %}
+                <option value="{{ team }}" {% if team == request.form.get('team_b') %}selected{% endif %}>{{ team }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Predict Winner</button>
+        </form>
+
+        {% if winner %}
+        <div class="result">The predicted winner is: <span style="color: #00e676;">{{ winner }}</span></div>
+        <div class="result">Model accuracy ≈ <span style="color: #00e676;">{{ accuracy }}</span></div>
+        {% endif %}
+
+        {% if error %}
+        <div class="result error">{{ error }}</div>
+        {% endif %}
+    </div>
+</body>
+</html>
