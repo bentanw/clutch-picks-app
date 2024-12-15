@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NBA MVP Prediction Results</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+<body>
+    <h1>MVP Prediction Results for {{ year }}</h1>
+    <h2>Top 10 Predictions</h2>
+    <table>
+        <tr>
+            <th>Score</th>
+            <th>Player</th>
+            <th>PTS</th>
+            <th>TRB</th>
+            <th>AST</th>
+            <th>WS/48</th>
+        </tr>
+        {% for index, row in top_10.iterrows() %}
+        <tr>
+            <td>{{ "{:.2f}".format(row.MVP_Probability * 100) }}</td>
+            <td>{{ row.Player }}</td>
+            <td>{{ row.PTS }}</td>
+            <td>{{ row.TRB }}</td>
+            <td>{{ row.AST }}</td>
+            <td>{{ row['WS/48'] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <h2>Actual MVP: {{ actual_mvp }}</h2>
+    <a href="/">Go Back</a>
+</body>
+</html>

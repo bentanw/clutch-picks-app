@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NBA MVP Predictor</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+<body>
+    <h1>NBA MVP Predictor</h1>
+    <form action="/results" method="post">
+        <label for="year">Select a Season:</label>
+        <select id="year" name="year">
+            <option value="05-06">2005-06</option>
+            <option value="09-10">2009-10</option>
+            <option value="16-17">2016-17</option>
+            <option value="23-24">2023-24</option>
+            <option value="24-25">2024-25</option>
+        </select>
+        <button type="submit">Predict MVP</button>
+    </form>
+</body>
+</html>
