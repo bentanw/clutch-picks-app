@@ -28,6 +28,9 @@ const UFCPredictor: React.FC = () => {
   const handlePredict = async () => {
     if (fighterLeft && fighterRight) {
       try {
+        // Clear previous prediction
+        setPrediction(null);
+
         const response = await fetch(
           `http://localhost:8000/ufc/predict?fighter_1=${encodeURIComponent(
             fighterLeft.name
@@ -114,7 +117,7 @@ const UFCPredictor: React.FC = () => {
           </h2>
           <select
             className="bg-gray-800 text-white rounded p-2 w-full"
-            value={fighterLeft?.name || ""}
+            value={fighterRight?.name || ""}
             onChange={(e) =>
               setFighterRight(
                 fighters?.find((f) => f.name === e.target.value) || null
@@ -141,18 +144,75 @@ const UFCPredictor: React.FC = () => {
 
       {isModalOpen && prediction && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 text-center">
-            <h2 className="text-xl font-bold mb-4">Prediction Result</h2>
-            <p className="text-lg font-semibold text-green-600 mb-2">
-              Winner: {prediction.winner}
-            </p>
-            <p className="text-gray-700">{prediction.message}</p>
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="mt-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-            >
-              Close
-            </button>
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl shadow-lg">
+            <h2 className="text-2xl font-bold text-center mb-6">
+              Prediction Result
+            </h2>
+            <div className="grid grid-cols-2 gap-4">
+              {/* Fighter Left Info */}
+              <div className="flex flex-col items-center bg-violet-950 p-4 rounded-lg">
+                <h3 className="text-xl font-semibold mb-2">
+                  {prediction.winner}
+                </h3>
+                <p className="text-sm text-gray-300">
+                  Current Rating: {prediction.winner_rating}
+                </p>
+                <div className="mt-4 w-full">
+                  <h4 className="font-semibold">Recent Fights</h4>
+                  <ul className="text-sm list-disc list-inside h-40 overflow-y-auto bg-gray-900 p-2 rounded">
+                    {prediction.winner_history
+                      .slice()
+                      .reverse()
+                      .map((fight, index) => (
+                        <li key={index}>
+                          {fight.event} vs {fight.opponent} ({fight.result})
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Fighter Right Info */}
+              <div className="flex flex-col items-center bg-blue-800 p-4 rounded-lg">
+                <h3 className="text-xl font-semibold mb-2">
+                  {prediction.loser}
+                </h3>
+                <p className="text-sm text-gray-300">
+                  Current Rating: {prediction.loser_rating}
+                </p>
+                <div className="mt-4 w-full">
+                  <h4 className="font-semibold">Recent Fights</h4>
+                  <ul className="text-sm list-disc list-inside h-40 overflow-y-auto bg-gray-900 p-2 rounded">
+                    {prediction.loser_history
+                      .slice()
+                      .reverse()
+                      .map((fight, index) => (
+                        <li key={index}>
+                          {fight.event} vs {fight.opponent} ({fight.result})
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Winner Announcement */}
+            <div className="mt-6 text-center">
+              <p className="text-lg font-bold text-green-600">
+                Winner: {prediction.winner}
+              </p>
+              <p className="text-gray-700">{prediction.message}</p>
+            </div>
+
+            {/* Close Button */}
+            <div className="text-center mt-4">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

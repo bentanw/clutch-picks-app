@@ -4,6 +4,8 @@ from IPython.display import display
 import os
 import pickle
 from typing import Dict, List
+from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 
 # Function to calculate the expected score
@@ -19,10 +21,10 @@ def update_elo(winner_elo, loser_elo, k_factor):
     return round(new_winner_elo, 2), round(new_loser_elo, 2)
 
 
-def get_fighter_info(fighter_name, elo_ratings, ufcfights, initial_elo=1000):
+def get_fighter_info(fighter_name, all_ratings, ufcfights, initial_elo=1000):
     # Check if the fighter exists in the Elo ratings dictionary
-    if fighter_name in elo_ratings:
-        elo = elo_ratings[fighter_name]
+    if fighter_name in all_ratings:
+        elo = all_ratings[fighter_name]
     else:
         elo = initial_elo
 
@@ -65,19 +67,6 @@ def get_fighter_info(fighter_name, elo_ratings, ufcfights, initial_elo=1000):
         }
     )
     fighter_matches_2["result"] = fighter_matches_2["result"].str.replace("win", "loss")
-
-    fighter_matches = pd.concat([fighter_matches_1, fighter_matches_2]).reset_index()
-
-    # Return Elo rating and their matches
-    if not fighter_matches.empty:
-        print(f"{fighter_name}'s current Elo rating: {elo[-1]}\n")
-        print(f"{fighter_name}'s highest Elo rating: {max(elo)}\n")
-        print(f"{fighter_name}'s matches:")
-        display(fighter_matches)
-        print(f"{fighter_name}'s elo history:\n")
-        fighter_matches["own elo after"].plot(marker="o")
-    else:
-        print(f"{fighter_name} has no recorded matches.")
 
     return elo[-1]
 
@@ -144,16 +133,17 @@ class UFCEloEngine:
 
         # Calculate Elo ratings for each match
         for index, row in self.ufcfights.iterrows():
-            fighter_1 = row["fighter_1"]
-            fighter_2 = row["fighter_2"]
+            fighter_1, fighter_2 = row["fighter_1"], row["fighter_2"]
 
             if fighter_1 not in self.elo_ratings:
                 self.elo_ratings[fighter_1] = [self.initial_elo]
             if fighter_2 not in self.elo_ratings:
                 self.elo_ratings[fighter_2] = [self.initial_elo]
 
-            fighter_1_elo_start = self.elo_ratings[fighter_1][-1]
-            fighter_2_elo_start = self.elo_ratings[fighter_2][-1]
+            fighter_1_elo_start, fighter_2_elo_start = (
+                self.elo_ratings[fighter_1][-1],
+                self.elo_ratings[fighter_2][-1],
+            )
 
             self.ufcfights.at[index, "fighter_1_elo_start"] = fighter_1_elo_start
             self.ufcfights.at[index, "fighter_2_elo_start"] = fighter_2_elo_start
@@ -190,22 +180,76 @@ class UFCEloEngine:
         )
 
         if fighter1_elo_rating > fighter2_elo_rating:
-            return {
-                "winner": first_fighter,
-                "message": f"{first_fighter} is better than {second_fighter}.",
-            }
+            return first_fighter
         else:
-            return {
-                "winner": second_fighter,
-                "message": f"{second_fighter} is better than {first_fighter}.",
-            }
-            
+            return second_fighter
+
     def get_fighters(self):
         return list(self.elo_ratings.keys())
 
 
-# test
-# model0 = UFCEloEngine()
-# model0.train()
-# model0.predict("Ilia Topuria", "Alexander Volkanovski")
-# model0.predict("Ilia Topuria", "Islam Makhachev")
+def run_accuracy_tests(
+    model: UFCEloEngine, test_data_path: str, runs: int = 50, sample_size: int = 100
+):
+    accuracies = []
+
+    for _ in tqdm(range(runs)):
+        # Reload the model for each run
+        model = UFCEloEngine()
+        model.train()
+
+        # Sample the test data
+        test_data = pd.read_csv(test_data_path, index_col=0).sample(
+            sample_size, random_state=np.random.randint(0, 10000)
+        )
+
+        # Run the accuracy test and collect accuracy
+        correct_predictions = 0
+        total_matches = 0
+
+        for index, row in test_data.iterrows():
+            fighter_1 = row["fighter_1"]
+            fighter_2 = row["fighter_2"]
+            actual_result = row["result"]
+
+            predicted_winner = model.predict(fighter_1, fighter_2)
+
+            if actual_result == "win":
+                actual_winner = fighter_1
+            elif actual_result == "loss":
+                actual_winner = fighter_2
+            else:
+                continue
+
+            if predicted_winner == actual_winner:
+                correct_predictions += 1
+            total_matches += 1
+
+        accuracy = correct_predictions / total_matches * 100
+        accuracies.append(accuracy)
+
+    # Plot the accuracies
+    plt.figure(figsize=(10, 6))
+    plt.plot(range(1, runs + 1), accuracies, marker="o", linestyle="--")
+    plt.title("Elo Model Accuracy Across Multiple Runs")
+    plt.xlabel("Run Number")
+    plt.ylabel("Accuracy (%)")
+    plt.grid()
+    plt.show()
+
+    # Print summary statistics
+    print(f"Average Accuracy: {np.mean(accuracies):.2f}%")
+    print(f"Minimum Accuracy: {np.min(accuracies):.2f}%")
+    print(f"Maximum Accuracy: {np.max(accuracies):.2f}%")
+
+
+if __name__ == "__main__":
+    # Instantiate and train the model
+    model = UFCEloEngine()
+    model.train()
+
+    # Define test data path
+    test_data_path = model.training_data
+
+    # Run the accuracy tests multiple times
+    run_accuracy_tests(model, test_data_path, runs=50, sample_size=100)
